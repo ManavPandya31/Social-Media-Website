@@ -33,16 +33,14 @@ const userSchema  = new Schema({
         type : String,
     },
 
-    // followers: [{
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "User"
-    // }],
+    bio : {
+        type : String,
+    },
 
-    // following: [{
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "User"
-    // }],
-
+    location : {
+        type : String,
+    },
+    
     refreshToken : {
         type : String,
     }
