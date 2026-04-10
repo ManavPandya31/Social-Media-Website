@@ -4,11 +4,12 @@ import { apiError } from "../Utils/apiError.js";
 import { Post } from "../Models/Post.model.js";
 // import { User } from "../Models/User.model.js";
 import { Comment } from "../Models/Comment.model.js";
-import { uploadOnCloudinary } from "../Utils/Cloudinary.js";
+import { uploadOnCloudinary } from "../Utils/cloudinary.js";
 
 const createPost = asyncHandler(async (req,res) => {
 
   const { caption } = req.body || {};
+  //console.log("Req Body :-",req.body);  
 
   if (!req.file) {
     throw new apiError(400, "Image is required");

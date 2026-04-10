@@ -114,4 +114,62 @@ const createProfile = asyncHandler(async(req,res) => {
 
 });
 
-export { registerUser , loginUser , createProfile }
+const updateUserProfile = asyncHandler(async(req,res) => {
+
+   const { userName, bio, location , gender} = req.body;
+
+   const user = await User.findById(req.user._id);
+
+   if (!user) {
+      throw new apiError(404, "User not found");
+   }
+
+   let avtarUrl = user.avtar;
+  
+   if (req.file) {
+
+    if (user.avtar) {
+      try {
+        const publicId = user.avtar.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(`avatars/${publicId}`);
+      } catch (error) {
+        console.log("Old image delete failed:", error);
+      }
+    }
+
+    const result = await uploadOnCloudinary(req.file.buffer, "avatars");
+
+    if (!result) {
+      throw new apiError(500, "Cloudinary upload failed");
+    }
+
+    avtarUrl = result.secure_url;
+  }
+
+  user.userName = userName || user.userName;
+  user.bio = bio || user.bio;
+  user.gender = gender || user.gender;
+  user.location = location || user.location;
+  user.avtar = avtarUrl;
+
+  await user.save();
+
+  return res.status(200)
+            .json(new apiResponse(200,"Profile Updated Sucess..."));
+
+});
+
+const getUserProfile = asyncHandler(async(req,res) => {
+   
+   const user = await User.findById(req.user._id)
+        .select("-password -refreshToken");
+
+    if (!user) {
+        throw new apiError(404, "User not found");
+    }
+
+    return res.status(200)
+               .json(new apiResponse(200,user,"User Profile Fetch Sucessfully.."));
+});
+
+export { registerUser , loginUser , createProfile , updateUserProfile , getUserProfile }
