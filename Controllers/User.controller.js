@@ -1,6 +1,7 @@
 import { asyncHandler } from "../Utils/asyncHandler.js";
 import { apiResponse } from "../Utils/apiResponse.js";
 import { apiError } from "../Utils/apiError.js";
+import { uploadOnCloudinary } from "../Utils/cloudinary.js";
 import { User } from "../Models/User.model.js";
 
  const options = {
@@ -80,36 +81,37 @@ const loginUser = asyncHandler(async(req,res) => {
 
 });
 
-// const followAndUnfollow = asyncHandler(async(req,res)=>{
+const createProfile = asyncHandler(async(req,res) => {
 
-//    const { userId } = req.params;
+ const { bio, location } = req.body;
 
-//    if (req.user._id.toString() === userId) {
-//       throw new apiError(400, "You Cannot Follow Yourself...");
-//    }
+  const user = await User.findById(req.user._id);
 
-//    const userToFollow = await User.findById(userId);
-//    const currentUser = await User.findById(req.user._id);
+  if (!user) {
+    throw new apiError(404, "User not found");
+  }
 
-//    if (!userToFollow){
-//        throw new apiError(404, "User Not Found");
-//    }
+  let avtarUrl;
 
-//    const isFollowing = currentUser.following.includes(userId);
+  if (req.file) {
+    const result = await uploadOnCloudinary(req.file.buffer, "avatars");
 
-//    if (isFollowing) {
-//       currentUser.following.pull(userId);
-//       userToFollow.followers.pull(req.user._id);
+    if (!result) {
+      throw new apiError(500, "Cloudinary upload failed");
+    }
 
-//    } else {
-//       currentUser.following.push(userId);
-//       userToFollow.followers.push(req.user._id);
-//    }
+    avtarUrl = result.secure_url;
+  }
 
-//    await currentUser.save();
-//    await userToFollow.save();
+  user.bio = bio || user.bio;
+  user.location = location || user.location;
+  user.avtar = avtarUrl || user.avtar;
 
+  await user.save();
 
-// });
+  return res.status(200)
+            .json(new apiResponse(200,"Profile created Sucessfully.."))
 
-export { registerUser , loginUser }
+});
+
+export { registerUser , loginUser , createProfile }
